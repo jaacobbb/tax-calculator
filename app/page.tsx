@@ -110,85 +110,6 @@ export default function Home() {
     setCurrentForm(formValue);
   };
 
-  const handleDownloadPDF = async () => {
-    try {
-      const primaryWagesNum = parseFloat(primaryWages);
-      const primaryFederalTaxWithheldNum = parseFloat(primaryFederalTaxWithheld);
-
-      if (isNaN(primaryWagesNum) || isNaN(primaryFederalTaxWithheldNum)) {
-        alert('Please ensure all fields are filled correctly');
-        return;
-      }
-
-      // Build the data object matching the API expectations
-      const taxReturnData = {
-        filingStatus,
-        primaryTaxpayer: {
-          firstName: primaryFirstName,
-          lastName: primaryLastName,
-          ssn: primarySsn,
-          wages: primaryWagesNum,
-          federalTaxWithheld: primaryFederalTaxWithheldNum,
-        },
-        spouse: (filingStatus === 'MFJ' || filingStatus === 'MFS') ? {
-          firstName: spouseFirstName,
-          lastName: spouseLastName,
-          ssn: spouseSsn,
-          wages: filingStatus === 'MFJ' ? parseFloat(spouseWages) : 0,
-          federalTaxWithheld: filingStatus === 'MFJ' ? parseFloat(spouseFederalTaxWithheld) : 0,
-        } : undefined,
-        address: {
-          streetAddress,
-          city,
-          state,
-          zipCode,
-        },
-        filingDetails: {
-          isDependent,
-          isSpouseDependent,
-          hasDigitalAssets,
-        },
-        // Legacy fields for backward compatibility with API
-        firstName: primaryFirstName,
-        lastName: primaryLastName,
-        ssn: primarySsn,
-        wages: primaryWagesNum,
-        federalTaxWithheld: primaryFederalTaxWithheldNum,
-      };
-
-      // Make POST request to generate PDF
-      const response = await fetch('/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(taxReturnData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to generate PDF');
-      }
-
-      // Get the PDF blob
-      const blob = await response.blob();
-      
-      // Create a download link and trigger download
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'tax-return-2024.pdf';
-      document.body.appendChild(a);
-      a.click();
-      
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      alert(error instanceof Error ? error.message : 'Failed to download PDF');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -288,8 +209,14 @@ export default function Home() {
               filingStatus={filingStatus}
               primaryFirstName={primaryFirstName}
               primaryLastName={primaryLastName}
+              primarySsn={primarySsn}
               spouseFirstName={spouseFirstName}
               spouseLastName={spouseLastName}
+              spouseSsn={spouseSsn}
+              streetAddress={streetAddress}
+              city={city}
+              state={state}
+              zipCode={zipCode}
               primaryWages={primaryWages}
               primaryFederalTaxWithheld={primaryFederalTaxWithheld}
               spouseWages={spouseWages}
@@ -297,7 +224,6 @@ export default function Home() {
               totalTax={totalTax}
               refundOrAmountOwed={refundOrAmountOwed}
               onCalculate={handleCalculate}
-              onDownloadPDF={handleDownloadPDF}
             />
           )}
         </div>
