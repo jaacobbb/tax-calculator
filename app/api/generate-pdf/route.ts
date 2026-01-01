@@ -71,8 +71,11 @@ export async function POST(request: NextRequest) {
     // Save the modified PDF into a Uint8Array
     const filledPdfBytes = await pdfDoc.save();
     
+    // Convert to Blob for type compatibility
+    const pdfBlob = new Blob([filledPdfBytes], { type: 'application/pdf' });
+    
     // Return the PDF as response with proper headers
-    return new NextResponse(filledPdfBytes.buffer, {
+    return new NextResponse(pdfBlob, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
