@@ -1,0 +1,26 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum FilingStatus {
+  SINGLE
+}
+
+model TaxReturn {
+  id                 Int          @id @default(autoincrement())
+  firstName          String
+  lastName           String
+  ssn                String
+  filingStatus       FilingStatus
+  wages              Decimal      // From W-2 Box 1
+  federalTaxWithheld Decimal      // From W-2 Box 2
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
